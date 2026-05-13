@@ -141,3 +141,14 @@ If `shipping.address` includes a city and state in the format `City, ST`, coordi
 | Portland, OR | 45.5051 | -122.6750 |
 | Denver, CO | 39.7392 | -104.9903 |
 | Salt Lake City, UT | 40.7608 | -111.8910 |
+
+---
+
+## Production Readiness (`POST /order`)
+
+- **Request validation** — Zod schema rejects bad input before touching the DB
+- **DB-level validation** — `enrichItems` re-verifies product prices inside the transaction to catch stale data
+- **Atomic transaction** — entire order flow is one DB transaction; any failure = full rollback
+- **Idempotent customer upsert** — `ON CONFLICT (email) DO UPDATE` prevents duplicate constraint errors
+- **Typed error classes** — custom errors map to correct HTTP status codes (400, 409, 500)
+- **Domain-organized services** — order services grouped under `src/services/orders/`
